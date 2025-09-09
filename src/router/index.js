@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '../supabase.js'
-import Login from '../components/login.vue'  // L maiúsculo
+import Login from '../components/LoginCliente.vue'  // L maiúsculo
 import ProdutosCliente from '../components/ProdutosCliente.vue'
 import Carrinho from '../components/Carrinho.vue'
 import ClientePedidos from '../components/ClientePedidos.vue'
