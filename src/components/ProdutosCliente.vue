@@ -2,6 +2,15 @@
   <div class="app-container">
     <h1>Produtos</h1>
 
+    <!-- Campo de busca -->
+    <div class="filtro">
+      <input
+        type="text"
+        v-model="filtroNome"
+        placeholder="Pesquisar produto..."
+      />
+    </div>
+
     <!-- Grid de produtos -->
     <div class="lista-grid">
       <div
@@ -16,7 +25,7 @@
       </div>
     </div>
 
-    <p v-if="produtosDisponiveis.length === 0">Nenhum produto disponível no momento.</p>
+    <p v-if="produtosDisponiveis.length === 0">Nenhum produto encontrado.</p>
 
     <!-- Modal -->
     <div v-if="modalAberto" class="modal-overlay">
@@ -40,8 +49,8 @@
         </p>
 
         <div class="modal-buttons">
-          <button @click="confirmarCarrinho" :disabled="!quantidade || quantidade <= 0">Adicionar</button>
           <button @click="fecharModal" class="cancel">Cancelar</button>
+          <button @click="confirmarCarrinho" :disabled="!quantidade || quantidade <= 0">Adicionar</button>
         </div>
       </div>
     </div>
@@ -60,12 +69,17 @@ export default {
       erro: null,
       modalAberto: false,
       produtoSelecionado: null,
-      quantidade: null, // em kg
+      quantidade: null,
+      filtroNome: '' // filtro por nome
     }
   },
   computed: {
     produtosDisponiveis() {
-      return this.produtos.filter(p => p.estoque > 0)
+      return this.produtos
+        .filter(p => p.estoque > 0)
+        .filter(p => 
+          p.nome.toLowerCase().includes(this.filtroNome.toLowerCase())
+        )
     }
   },
   async created() {
@@ -96,13 +110,10 @@ export default {
       this.quantidade = null
     },
     confirmarCarrinho() {
-      // Quantidade mínima 0,1kg
       if (!this.quantidade || this.quantidade < 0.1) {
         alert('Digite uma quantidade válida em kg (mínimo 0,1kg).')
         return
       }
-
-      // Adiciona ao carrinho, mantendo a quantidade em kg
       carrinhoStore.add({ ...this.produtoSelecionado, quantidade: this.quantidade })
       alert(`Produto "${this.produtoSelecionado.nome}" adicionado ao carrinho!`)
       this.fecharModal()
@@ -112,6 +123,16 @@ export default {
 </script>
 
 <style scoped>
+.filtro {
+  margin-bottom: 20px;
+}
+
+.filtro input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
 .modal-overlay {
   position: fixed;
   top: 0;

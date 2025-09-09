@@ -55,6 +55,11 @@
               📝 <span>Carrinho</span>
             </router-link>
           </li>
+          <li v-if="menuAberto" key="clientePedidos">
+              <router-link to="/clientePedidos" class="menu-link" active-class="ativo">
+              📝 <span>Meus Pedidos</span>
+            </router-link>
+          </li>
           <li v-if="menuAberto" key="sair">
             <button @click="logout" class="menu-link">
               🔒 <span>Sair</span>
