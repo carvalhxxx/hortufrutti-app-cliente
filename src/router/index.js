@@ -6,6 +6,7 @@ import Carrinho from '../components/Carrinho.vue'
 import ClientePedidos from '../components/ClientePedidos.vue'
 
 const routes = [
+  { path: '/', redirect: '/login' }, // rota padrão
   { path: '/login', component: Login },
   { path: '/produtos/lista', component: ProdutosCliente, meta: { requiresAuth: true } },
   { path: '/carrinho', component: Carrinho, meta: { requiresAuth: true } },
