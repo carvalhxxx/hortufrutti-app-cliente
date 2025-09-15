@@ -41,7 +41,7 @@
 
         <transition-group name="slide" tag="ul">
           <li v-if="menuAberto" key="home">
-            <router-link to="/" class="menu-link" active-class="ativo">
+            <router-link to="/inicioApp" class="menu-link" active-class="ativo">
               🏠 <span>Início</span>
             </router-link>
           </li>
@@ -98,10 +98,21 @@ export default {
     })
   },
   methods: {
-    async logout() {
+  async logout() {
+    // Fecha menu e atualiza estado local imediatamente
+    this.menuAberto = false
+    this.logado = false
+
+    // Redireciona para login antes de esperar Supabase
+    this.$router.replace("/login")
+
+    // Encerra sessão Supabase em background
+    try {
       await supabase.auth.signOut()
-      this.$router.push("/login")
+    } catch (error) {
+      console.error("Erro ao deslogar:", error.message)
     }
+  }
   }
 }
 </script>
