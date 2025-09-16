@@ -14,7 +14,6 @@
 
         <h1 class="titulo">Meu Sistema</h1>
 
-        <!-- Removido botão de sair -->
         <div class="acoes"></div>
       </header>
 
@@ -41,22 +40,22 @@
 
         <transition-group name="slide" tag="ul">
           <li v-if="menuAberto" key="home">
-            <router-link to="/inicioApp" class="menu-link" active-class="ativo">
+            <router-link to="/inicioApp" class="menu-link" active-class="ativo" @click="fecharMenu">
               🏠 <span>Início</span>
             </router-link>
           </li>
           <li v-if="menuAberto" key="produtos">
-            <router-link to="/produtos/lista" class="menu-link" active-class="ativo">
+            <router-link to="/produtos/lista" class="menu-link" active-class="ativo" @click="fecharMenu">
               📦 <span>Produtos</span>
             </router-link>
           </li>
           <li v-if="menuAberto" key="carrinho">
-              <router-link to="/carrinho" class="menu-link" active-class="ativo">
-              📝 <span>Carrinho</span>
+            <router-link to="/carrinho" class="menu-link" active-class="ativo" @click="fecharMenu">
+              🛒 <span>Carrinho</span>
             </router-link>
           </li>
           <li v-if="menuAberto" key="clientePedidos">
-              <router-link to="/clientePedidos" class="menu-link" active-class="ativo">
+            <router-link to="/clientePedidos" class="menu-link" active-class="ativo" @click="fecharMenu">
               📝 <span>Meus Pedidos</span>
             </router-link>
           </li>
@@ -98,25 +97,23 @@ export default {
     })
   },
   methods: {
-  async logout() {
-    // Fecha menu e atualiza estado local imediatamente
-    this.menuAberto = false
-    this.logado = false
+    fecharMenu() {
+      this.menuAberto = false
+    },
 
-    // Redireciona para login antes de esperar Supabase
-    this.$router.replace("/login")
-
-    // Encerra sessão Supabase em background
-    try {
-      await supabase.auth.signOut()
-    } catch (error) {
-      console.error("Erro ao deslogar:", error.message)
+    async logout() {
+      this.menuAberto = false
+      this.logado = false
+      this.$router.replace("/login")
+      try {
+        await supabase.auth.signOut()
+      } catch (error) {
+        console.error("Erro ao deslogar:", error.message)
+      }
     }
-  }
   }
 }
 </script>
-
 
 <style>
 /* =======================
@@ -146,13 +143,8 @@ export default {
   margin: 0;
 }
 
-.app-header .acoes {
-  /* Mantido vazio já que o botão de sair foi removido */
-}
+.app-header .acoes {}
 
-/* =======================
-   Botão hamburguer dentro do header
-======================= */
 .toggle-btn {
   background: transparent;
   border: none;
@@ -161,18 +153,12 @@ export default {
   cursor: pointer;
 }
 
-/* =======================
-   Container principal
-======================= */
 .container {
   display: flex;
   height: 100vh;
   position: relative;
 }
 
-/* =======================
-   Overlay escuro com fade
-======================= */
 .overlay {
   position: fixed;
   top: 0;
@@ -190,9 +176,6 @@ export default {
   opacity: 0;
 }
 
-/* =======================
-   Menu lateral deslizante
-======================= */
 .menu-lateral {
   width: 220px;
   background-color: #2c3e50;
@@ -211,7 +194,6 @@ export default {
   transform: translateX(0);
 }
 
-/* Slide animation para botões/links */
 .slide-enter-active, .slide-leave-active {
   transition: all 0.3s ease;
 }
@@ -220,7 +202,6 @@ export default {
   opacity: 0;
 }
 
-/* Botão fechar dentro do menu */
 .close-btn {
   align-self: flex-end;
   background: transparent;
@@ -231,7 +212,6 @@ export default {
   margin-bottom: 20px;
 }
 
-/* Links do menu */
 .menu-lateral ul {
   list-style: none;
   padding: 0;
@@ -268,35 +248,28 @@ export default {
   font-weight: bold;
 }
 
-/* =======================
-   Conteúdo principal
-======================= */
 .conteudo {
   flex: 1;
   margin-left: 0;
   padding: 20px;
-  padding-top: 80px; /* espaço para o header fixo */
+  padding-top: 80px;
   transition: margin-left 0.3s ease;
 }
 
-/* Desktop: desloca conteúdo quando menu aberto */
 @media(min-width: 768px) {
   .conteudo {
     margin-left: 220px;
-    padding-top: 80px; /* ajustado para header */
+    padding-top: 80px;
   }
 }
 
-/* Mobile: menu ocupa 70% da tela */
 @media(max-width: 767px) {
   .menu-lateral {
     width: 70%;
   }
   .conteudo {
     margin-left: 0;
-    padding-top: 80px; /* ajustado para header */
+    padding-top: 80px;
   }
 }
 </style>
-
-
