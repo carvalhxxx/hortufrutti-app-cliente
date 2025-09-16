@@ -2,6 +2,11 @@
   <div class="app-container">
     <h1>Produtos</h1>
 
+    <!-- ALERTA TOAST -->
+    <div v-if="alerta.mostrar" :class="['alerta-toast', alerta.tipo]">
+      {{ alerta.mensagem }}
+    </div>
+
     <!-- Campo de busca -->
     <div class="filtro">
       <input
@@ -70,7 +75,8 @@ export default {
       modalAberto: false,
       produtoSelecionado: null,
       quantidade: null,
-      filtroNome: '' // filtro por nome
+      filtroNome: '',
+      alerta: { mostrar: false, mensagem: '', tipo: 'sucesso' } // TOAST
     }
   },
   computed: {
@@ -88,7 +94,7 @@ export default {
       if (error) throw error
       this.produtos = data
     } catch (err) {
-      this.erro = 'Erro ao carregar produtos: ' + err.message
+      this.mostrarAlerta('Erro ao carregar produtos: ' + err.message, 'erro')
     }
   },
   methods: {
@@ -111,12 +117,18 @@ export default {
     },
     confirmarCarrinho() {
       if (!this.quantidade || this.quantidade < 0.1) {
-        alert('Digite uma quantidade válida em kg (mínimo 0,1kg).')
+        this.mostrarAlerta('Digite uma quantidade válida em kg (mínimo 0,1kg).', 'erro')
         return
       }
       carrinhoStore.add({ ...this.produtoSelecionado, quantidade: this.quantidade })
-      alert(`Produto "${this.produtoSelecionado.nome}" adicionado ao carrinho!`)
+      this.mostrarAlerta(`${this.produtoSelecionado.nome} adicionado ao carrinho!`, 'sucesso')
       this.fecharModal()
+    },
+    mostrarAlerta(mensagem, tipo = 'sucesso') {
+      this.alerta = { mostrar: true, mensagem, tipo }
+      setTimeout(() => {
+        this.alerta.mostrar = false
+      }, 2500)
     }
   }
 }
@@ -133,6 +145,8 @@ export default {
   border-radius: 6px;
   border: 1px solid #ccc;
 }
+
+/* Modal */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -175,5 +189,33 @@ export default {
 
 .modal-buttons button:hover {
   opacity: 0.9;
+}
+
+/* TOAST */
+.alerta-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  color: white;
+  z-index: 9999;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  animation: slide-down 0.3s ease;
+}
+
+.alerta-toast.sucesso {
+  background-color: #1abc9c;
+}
+
+.alerta-toast.erro {
+  background-color: #e74c3c;
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
 }
 </style>

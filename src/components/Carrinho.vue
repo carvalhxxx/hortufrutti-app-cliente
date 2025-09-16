@@ -2,6 +2,11 @@
   <div class="app-container">
     <h1>Meu Carrinho</h1>
 
+    <!-- ALERTA TOAST -->
+    <div v-if="alerta.mostrar" :class="['alerta-toast', alerta.tipo]">
+      {{ alerta.mensagem }}
+    </div>
+
     <div v-if="carrinho.length === 0">
       <p>Seu carrinho está vazio.</p>
     </div>
@@ -60,7 +65,10 @@ export default {
       modalFinalizacaoAberto: false,
       observacoes: '',
       dataEntrega: null,
-      clienteLogadoId: null
+      clienteLogadoId: null,
+
+      // ALERTA TOAST
+      alerta: { mostrar: false, mensagem: '', tipo: 'sucesso' }
     }
   },
   computed: {
@@ -71,10 +79,9 @@ export default {
   async created() {
     this.carrinho = carrinhoStore.getAll()
 
-    // Buscar cliente logado
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
-      alert('Usuário não logado!')
+      this.mostrarAlerta('Usuário não logado!', 'erro')
       return
     }
 
@@ -86,13 +93,17 @@ export default {
       .single()
 
     if (error) {
-      console.error('Erro ao buscar cliente logado:', error.message)
+      this.mostrarAlerta('Erro ao buscar cliente logado', 'erro')
       return
     }
 
     this.clienteLogadoId = cliente.id
   },
   methods: {
+    mostrarAlerta(mensagem, tipo = 'sucesso') {
+      this.alerta = { mostrar: true, mensagem, tipo }
+      setTimeout(() => { this.alerta.mostrar = false }, 2500)
+    },
     formatarPreco(valor) {
       if (!valor) return 'R$ 0,00'
       return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor)
@@ -104,10 +115,11 @@ export default {
     removerItem(item) {
       carrinhoStore.remove(item)
       this.carrinho = carrinhoStore.getAll()
+      this.mostrarAlerta('Item removido do carrinho', 'sucesso')
     },
     abrirFinalizacao() {
       if (this.carrinho.length === 0) {
-        alert('Carrinho vazio.')
+        this.mostrarAlerta('Carrinho vazio', 'erro')
         return
       }
       this.observacoes = ''
@@ -119,18 +131,13 @@ export default {
     },
     calcularProximaEntrega() {
       const hoje = new Date()
-      const diaSemana = hoje.getDay() // 0=domingo ... 6=sábado
+      const diaSemana = hoje.getDay()
       let diasParaAdicionar = 0
 
-      if ([2,4,6,0].includes(diaSemana)) { // Terça, Quinta, Sábado, Domingo
-        diasParaAdicionar = 1
-      } else if (diaSemana === 1) { // Segunda
-        diasParaAdicionar = 2
-      } else if (diaSemana === 3) { // Quarta
-        diasParaAdicionar = 2
-      } else if (diaSemana === 5) { // Sexta
-        diasParaAdicionar = 3
-      }
+      if ([2,4,6,0].includes(diaSemana)) diasParaAdicionar = 1
+      else if (diaSemana === 1) diasParaAdicionar = 2
+      else if (diaSemana === 3) diasParaAdicionar = 2
+      else if (diaSemana === 5) diasParaAdicionar = 3
 
       const entrega = new Date()
       entrega.setDate(hoje.getDate() + diasParaAdicionar)
@@ -144,24 +151,21 @@ export default {
       const ano = d.getFullYear()
       return `${dia}/${mes}/${ano}`
     },
-        async confirmarPedido() {
+    async confirmarPedido() {
       try {
         if (!this.clienteLogadoId) {
-          alert('Cliente logado não encontrado!')
+          this.mostrarAlerta('Cliente logado não encontrado!', 'erro')
           return
         }
 
-        // Função para ajustar data/hora para Brasília e gerar ISO correto
         const toBrasiliaTimestamp = (date) => {
           const d = new Date(date)
-          // Ajusta para UTC subtraindo o deslocamento do fuso horário
           return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString()
         }
 
         const dataPedidoBR = toBrasiliaTimestamp(new Date())
         const dataEntregaBR = toBrasiliaTimestamp(this.dataEntrega)
 
-        // Inserir pedido com valor total
         const { data: pedidoCriado, error: errPedido } = await supabase
           .from('pedidos')
           .insert([{
@@ -177,7 +181,6 @@ export default {
 
         const pedidoId = pedidoCriado[0].id
 
-        // Inserir itens do pedido
         const itensParaInserir = this.carrinho.map(item => ({
           id_pedido: pedidoId,
           id_produto: item.id,
@@ -185,25 +188,20 @@ export default {
           preco_unitario: item.preco
         }))
 
-        const { error: errItens } = await supabase
-          .from('itens_pedido')
-          .insert(itensParaInserir)
+        const { error: errItens } = await supabase.from('itens_pedido').insert(itensParaInserir)
         if (errItens) throw errItens
 
-        alert('Pedido finalizado com sucesso!')
+        this.mostrarAlerta('Pedido finalizado com sucesso!', 'sucesso')
         carrinhoStore.clear()
         this.carrinho = []
         this.fecharModalFinalizacao()
       } catch (err) {
-        alert('Erro ao finalizar pedido: ' + err.message)
+        this.mostrarAlerta('Erro ao finalizar pedido: ' + err.message, 'erro')
       }
     }
-
-
   }
 }
 </script>
-
 
 <style scoped>
 .lista-grid {
@@ -286,5 +284,26 @@ export default {
 
 .modal-buttons button:hover {
   opacity: 0.9;
+}
+
+/* ALERTA FIXO TOAST */
+.alerta-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  color: white;
+  z-index: 9999;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  animation: slide-down 0.3s ease;
+}
+.alerta-toast.sucesso { background-color: #1abc9c; }
+.alerta-toast.erro { background-color: #e74c3c; }
+@keyframes slide-down {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
 }
 </style>
