@@ -3,7 +3,7 @@ Aplicação para clientes do fornecedor, com listagem de produtos, carrinho e ac
 
 # Demo
 
-<img width="209" height="457" alt="TelaAppCliente" src="https://github.com/user-attachments/assets/c10133b3-14c8-4178-b73d-09ceefa06471" />
+<img width="209" height="457" alt="TelaAppCliente" src="https://github.com/user-attachments/assets/c10133b3-14c8-4178-b73d-09ceefa06471" />  <br>
 Acesse aqui a demo -> https://hortufrutti-app-cliente.vercel.app
 
 aqui pode se criar um usuario para logar
